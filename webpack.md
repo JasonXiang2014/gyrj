@@ -384,6 +384,7 @@ If you're having trouble, navigating to the /webpack-dev-server route will show 
 --open: 自动打开浏览器
 --port: 端口👌
 --content-base: 本地服务存储的内容来源地址 
+--inline:  //Inline-mode，是webpack-dev-server会在你的webpack.config.js的入口配置文件中再添加一个入口,这样就完成了将inlined.js打包进bundle.js里的功能，同时inlined.js里面也包含了socket.io的client代码，可以和webpack-dev-server进行websocket通讯。
 比如：--content-base dist/, 表示 locolhost:8081/的来源就是dist目录下
 ```
 
@@ -392,6 +393,7 @@ devServer: {
   open: true,
   port: 8081,
   contentBase: path.join(__dirname, "dist"),
+  inline: false, //CLI无法配置这个， iframe模式在网页中嵌入了一个iframe，将我们自己的应用注入到这个iframe当中去
   proxy: {
   "/api": {
     target: "http://localhost:9092/"
@@ -509,16 +511,16 @@ const ->var
 
  *  babel-preset-es2017
      *  tc39正式发布
-        	*  技术委员会第39号，ecma的一部分
+         *  技术委员会第39号，ecma的一部分
          *  精简了填案过程
-            	*  Stage-0 想法阶段
-            	*  Stage-1值得更进
-            	*  Stage-2 指定规范
-            	*  Stage-3 候选发布名单
-            	*  Stage-4 完成
-	*  babel-preset-latest
-	*  babel-preset-stage-1
-	*  babel-preset-stage-2
+         *  Stage-0 想法阶段
+         *  Stage-1值得更进
+         *  Stage-2 指定规范
+         *  Stage-3 候选发布名单
+         *  Stage-4 完成
+     *  babel-preset-latest
+     *  babel-preset-stage-1
+     *  babel-preset-stage-2
  *  babel-preset-stage-3
     	*  tc39草案阶段
 	*  ...
@@ -865,3 +867,23 @@ module.exports = class Webpack {
 }
 ```
 
+## 17 output.publicPath 
+
+[Webpack中publicPath详解](https://juejin.cn/post/6844903601060446221)
+
+如果设置`publicPath: './dist/'`，则打包后js的引用路径为`./dist/main.js`，但是这里有一个问题，相对路径在访问本地时可以，但是如果将静态资源托管到CDN上则访问路径显然不能使用相对路径，但是如果将`publicPath`设置成`/`，则打包后访问路径为`localhost:8080/dist/main.js`，本地无法访问。
+
+## 18 webpack-dev-server.publicPath
+
+publicPath`路径下的打包文件可以在浏览器中访问。而静态资源仍然使用`output.publicPath.
+
+webpack-dev-server打包的内容是放在内存中的，这些打包后的资源对外的的根目录就是`publicPath`
+
+```
+// 假设devServer的publicPath为
+const publicPath = '/dist/'
+// 则启动devServer后index.html的位置为
+const htmlPath = `${pablicPath}index.html`
+// 包的位置
+cosnt mainJsPath = `${pablicPath}main.js`
+```
